@@ -1,0 +1,9 @@
+for modal premiums.  
+#
+Single Premium means the premium amount payable in lump sum at policy  inception under  the base product excluding any extra premium 
+and taxes, if collected explicitly .
+2
+Total Premiums Paid means total of all the premiums paid under  the base product, excluding any extra premium and taxes, if collected 
+explicitly .
++Absolute amount Assur ed to be paid on death will depend on the plan option chosen by you at the policy  inception and be as follows:
+Terminal Illness Benefit:

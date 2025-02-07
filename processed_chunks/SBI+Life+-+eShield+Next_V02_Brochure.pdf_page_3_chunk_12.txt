@@ -1,0 +1,6 @@
+constant thr oughout the policy  term.
+  For example: If a policy  is issued for a Life Assur ed aged 35 years and Basic Sum assur ed of `1,00,00,000 for a term of th
+30 years, and if the death occurs in 14 policy  year, the sum assur ed payable on death would be `1,20,00,000 
+(`1,00,00,000 + 2 increases of 10,00,000 each), provided the policy  is in-for ce.
+#
+  (please refer section 'Benefits in Detail' for description of Death Benefit and in-built featur es under  the product)

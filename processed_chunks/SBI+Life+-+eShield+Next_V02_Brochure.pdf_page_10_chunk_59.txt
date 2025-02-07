@@ -1,0 +1,10 @@
+excluding any  extra pr emium and tax es, if  collected explicitly .
+ For Limited Premium payment:  The policy  acquir es Surr ender  Value only  if at least first 2 full consecutive policy  
+year's pr emiums have been paid. The surr ender  value / Unexpir ed Risk Pr emium Value payable is: 
+Surrender  Value F actor  X (Unexpir ed Policy  Term/Original P olicy  Term) X Total Pr emiums Paid
+Surrender  Value F actors 
+Policy  Year
+1
+2
+3
+4 to the end of  Premium Payment Term

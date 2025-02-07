@@ -1,0 +1,14 @@
+Surrender  Value F actors 
+Policy  Year
+1
+2
+3
+4 to the end of  Premium Payment Term
+For the rest of  the policy  termSurrender  Value F actor
+0%
+30%
+40%
+50%
+70% 
+10Total Premiums Paid means total of all the premiums paid under  the base product, excluding any extra premium and taxes, if 
+collected explicitly .

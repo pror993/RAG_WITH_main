@@ -1,0 +1,8 @@
+For APPD , Maximum Rider  Sum Assur ed shall not exceed the Sum Assur ed under  
+the base Policy  to which it is attached
+Rider  Premium Payment Mode Same as the pr emium payment mode of  the base policy .Maximum:  65 Years
+Maximum Age* at Maturity 75 Years
+Rider  Term Minimum: 1 Years Maximum:  75 Years less Age at Entry  of
+the rider
+Rider  Term should be less than or  equal to the outstanding policy  term of  the 
+base policy .

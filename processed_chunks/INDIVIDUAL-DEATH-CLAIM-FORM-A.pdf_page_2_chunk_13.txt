@@ -1,0 +1,8 @@
+Account Holder Name:  ___________________________________________  
+Bank Name & Branch : ____________________________________________  
+Account Type             Savings            Current               NRO               NRE  
+IFSC: _________________________ MIRC: ___________________________  
+Blank space for companies to input product specific payout methods  
+ 
+SECTION C*  
+DECLARATION AND AUTHORISATION

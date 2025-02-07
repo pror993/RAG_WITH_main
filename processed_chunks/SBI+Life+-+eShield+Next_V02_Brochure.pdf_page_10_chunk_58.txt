@@ -1,0 +1,7 @@
+Surrender  benefit
+ For Regular  Premium:  No Surr ender  benefit is available
+ For Single Premium: The policy  can be surr ender ed anytime during the policy  term. The surr ender  value / Unexpir ed 
+Risk Pr emium Value payable is: 
+ 70% of  Single Pr emium X (Unexpir ed Policy  Term/Original P olicy  Term)
+ Single Pr emium means the pr emium amount payable in lump sum at policy  inception under  the base pr oduct 
+excluding any  extra pr emium and tax es, if  collected explicitly .
