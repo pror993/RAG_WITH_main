@@ -1,6 +1,6 @@
 import os
-import requests
 from dotenv import load_dotenv
+from google import genai
 
 # Load environment variables from .env
 load_dotenv()
@@ -8,10 +8,11 @@ load_dotenv()
 class GeminiSummarizer:
     def __init__(self):
         """
-        Initialize the Gemini API summarizer with the API key.
+        Initialize the Gemini API client with the API key.
         """
         self.api_key = os.getenv("GEMINI_API_KEY")
-        self.endpoint = "https://api.gemini.com/v1/summarize"  # Replace with the actual Gemini API endpoint for summarization
+        self.client = genai.Client(api_key=self.api_key)  # Initialize the Gemini client
+        self.model = "gemini-2.0-flash"  # Use the recommended model for summarization
 
         if not self.api_key:
             raise ValueError("Gemini API key is not set. Please add it to the .env file.")
@@ -26,25 +27,14 @@ class GeminiSummarizer:
         # Combine the retrieved chunks into a single context
         context = " ".join([chunk["text"] for chunk in chunks])
 
-        # Prepare the payload for the API request
-        payload = {
-            "prompt": f"{prompt}\n\n{context}",
-            "max_tokens": 200,  # Limit the length of the summary
-            "temperature": 0.7,  # Adjust for more/less creativity
-        }
-
-        headers = {
-            "Authorization": f"Bearer {self.api_key}",
-            "Content-Type": "application/json",
-        }
-
-        # Call the Gemini API
-        response = requests.post(self.endpoint, json=payload, headers=headers)
-
-        if response.status_code != 200:
-            raise Exception(f"Gemini API Error: {response.status_code} - {response.text}")
-
-        return response.json()["summary"]  # Adjust the key based on Gemini's API response format
+        # Call the Gemini API to generate the summary
+        try:
+            response = self.client.models.generate_content(
+                model=self.model, contents=[f"{prompt}\n\n{context}"]
+            )
+            return response.text
+        except Exception as e:
+            raise Exception(f"Gemini API Error: {e}")
 
 
 # Example Usage
