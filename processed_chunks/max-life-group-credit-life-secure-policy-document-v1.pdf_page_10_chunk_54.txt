@@ -1,0 +1,6 @@
+for such Member , We shall pay the Surrender Value to the Member , based on the  formula given below :  
+  Surrender Value  = 70% of Premium paid * (Unexpired Period of Coverage in months on the date 
+of Surrender^  / Total Period of Cover age in mo nths ) * (Sum Assured applicable on the date  of 
+Surrender^^  / Sum Assured on the Date of Commencement of Risk / Effective Date of Coverage ) 
+^  Ignoring fraction of a month  
+^^  As per the schedule mentioned in  the  Certificate of Insurance

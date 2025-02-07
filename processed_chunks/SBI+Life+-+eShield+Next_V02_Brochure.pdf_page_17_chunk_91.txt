@@ -1,0 +1,10 @@
+the rider
+Rider  Term should be less than or  equal to the outstanding policy  term of  the 
+base policy .
+Rider  opted at inception of  base policy: Rider  premium payment term should be 
+same as premium payment term of the base policy .
+Rider  opted at subsequent policy  anniversary  of base policy: Rider  premium 
+payment term should be equal to the outstanding premium payment term of the 
+base policy .
+Minimum: `50,000 or  the minimum 
+Sum Assur ed on the base pr oduct

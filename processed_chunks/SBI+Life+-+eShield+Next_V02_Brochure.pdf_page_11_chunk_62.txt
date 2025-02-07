@@ -1,0 +1,7 @@
+30 8,834 10,645 13,964 30 8,197 9,212 11,579
+ 40 15,028 22,512 28,898 40 12,211 17,572 22,980
+ 50 36,613 50,788 63,574 50 27,904 39,942 49,823 Age on last birthday / 10 20 30 Age on last birthday / 10 20 30
+ Term (years )     Term (years )   Increasing Cover  | Regular  Premium
+Healthy , Non-Smok er, Male Life Healthy , Non-Smok er, Female Life
+ 20 8,589 9,585 11,595 30 7,990 8,400 9,773
+ 25 14,453 19,620 23,470 40 11,793 15,394 18,708

@@ -1,0 +1,8 @@
+Kidney disease                     Cancer                       Other  _______________________  
+                  Smoking                              Tobacco                      Drugs , if yes, Duration of Consumption ________________ & Quantity Consumed  
+Other Insurance details: (Life/Mediclaim/Health)  
+Policy No.  Company Name  Sum Assured  Status 
+(Active/Lapsed/Applied/Matured)  Claims status  
+     
+     
+DETAILS OF CLAIMANT

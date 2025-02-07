@@ -1,0 +1,6 @@
+the death benefit payment mode.
+ Following the claim under  Terminal Illness benefit, if the Paid-up Sum Assur ed is higher  than the terminal benefit paid, 
+the balance death benefit, will be paid on death of the life insur ed during the policy  term.
+ The Paid-up Sum Assur ed on Death = {Sum Assur ed on Death X (T otal P eriod for  which Pr emiums have alr eady  been 
+paid/Maximum Period for which premiums were originally  payable )}.
+9
