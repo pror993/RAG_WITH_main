@@ -38,7 +38,7 @@ class RAGPipeline:
         reranked_results = self.reranker.rerank(query, combined_results)
 
         print("Summarizing results...")
-        summary = self.summarizer.summarize(reranked_results)
+        summary = self.summarizer.summarize(reranked_results, query)
 
         return summary
 

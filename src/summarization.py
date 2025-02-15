@@ -18,24 +18,26 @@ class GeminiSummarizer:
         if not self.api_key:
             raise ValueError("Gemini API key is not set. Please add it to the .env file.")
 
-    def summarize(self, chunks, prompt="Summarize the following text:"):
+    def summarize(self, chunks, query: str, prompt="Summarize the following text:"):
         """
         Summarize the retrieved chunks using the Gemini API.
         :param chunks: List of retrieved text chunks.
+        :param query: The original user query.
         :param prompt: Instruction for summarization (optional).
         :return: Summarized response as a string.
         """
         # Combine the retrieved chunks into a single context
         context = " ".join([chunk["text"] for chunk in chunks])
 
-        # Default structured prompt for a BPO agent handling claims
+        # Default structured prompt for assisting a BPO agent
         default_prompt = (
-            "Hi Agent, here’s a summary of the claims document. "
-            "Focus on key details like required documents, conditions, and important notes. "
-            "Ensure accuracy and clarity."
+            "You are assisting a BPO agent by summarizing the following claims document. "
+            "Focus on key details such as required documents, conditions, important notes, and any actions the customer needs to take. "
+            "Ensure the summary is accurate, easy to understand, and helpful for the customer. "
+            "If the source of the information is mentioned in the context, include it in the summary."
         )
         
-        final_prompt = f"{default_prompt}\n\n{prompt}\n\n{context}"
+        final_prompt = f"{default_prompt}\n\nQuery: {query}\n\n{prompt}\n\n{context}"
 
         # Call the Gemini API to generate the summary
         try:
