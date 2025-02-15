@@ -6,13 +6,14 @@ from google import genai
 load_dotenv()
 
 class GeminiSummarizer:
-    def __init__(self):
+    def __init__(self, model="gemini-1.5-flash"):
         """
         Initialize the Gemini API client with the API key.
+        Uses only free-tier Gemini models.
         """
         self.api_key = os.getenv("GEMINI_API_KEY")
         self.client = genai.Client(api_key=self.api_key)  # Initialize the Gemini client
-        self.model = "gemini-2.0-flash"  # Use the recommended model for summarization
+        self.model = model  # Default to "gemini-1.5-flash"
 
         if not self.api_key:
             raise ValueError("Gemini API key is not set. Please add it to the .env file.")
@@ -27,27 +28,20 @@ class GeminiSummarizer:
         # Combine the retrieved chunks into a single context
         context = " ".join([chunk["text"] for chunk in chunks])
 
+        # Default structured prompt for a BPO agent handling claims
+        default_prompt = (
+            "Hi Agent, here’s a summary of the claims document. "
+            "Focus on key details like required documents, conditions, and important notes. "
+            "Ensure accuracy and clarity."
+        )
+        
+        final_prompt = f"{default_prompt}\n\n{prompt}\n\n{context}"
+
         # Call the Gemini API to generate the summary
         try:
             response = self.client.models.generate_content(
-                model=self.model, contents=[f"{prompt}\n\n{context}"]
+                model=self.model, contents=[final_prompt]
             )
             return response.text
         except Exception as e:
             raise Exception(f"Gemini API Error: {e}")
-
-
-# Example Usage
-if __name__ == "__main__":
-    summarizer = GeminiSummarizer()
-
-    # Example chunks
-    chunks = [
-        {"text": "Claim form and hospital bills are required."},
-        {"text": "You need your ID proof and signed claim documents."},
-        {"text": "Incomplete applications may cause delays."},
-    ]
-
-    # Summarize the chunks
-    summary = summarizer.summarize(chunks)
-    print("Summary:", summary)
