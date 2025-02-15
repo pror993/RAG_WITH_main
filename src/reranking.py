@@ -1,3 +1,4 @@
+import logging
 from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
 import torch
 from typing import List, Dict
@@ -8,7 +9,9 @@ class Reranker:
         """
         Initialize the monoT5 reranker with the specified model.
         """
-        print(f"Loading reranker model: {model_name}")
+        self.logger = logging.getLogger(__name__)
+        logging.basicConfig(level=logging.INFO)
+        self.logger.info(f"Loading reranker model: {model_name}")
 
         # Use the slow tokenizer to avoid conversion issues
         self.tokenizer = AutoTokenizer.from_pretrained(model_name, use_fast=False)
@@ -30,25 +33,30 @@ class Reranker:
         reranked_results = []
 
         for candidate in candidates:
-            # Format input for monoT5
-            t5_input = self.format_to_t5_query(query, candidate["text"])
-            inputs = self.tokenizer(t5_input, return_tensors="pt", max_length=512, truncation=True)
+            try:
+                # Format input for monoT5
+                t5_input = self.format_to_t5_query(query, candidate["text"])
+                inputs = self.tokenizer(t5_input, return_tensors="pt", max_length=512, truncation=True)
 
-            # Generate textual classification (e.g., "true"/"false")
-            with torch.no_grad():
-                outputs = self.model.generate(**inputs, max_new_tokens=1)
-                prediction = self.tokenizer.decode(outputs[0], skip_special_tokens=True).strip().lower()
+                # Generate textual classification (e.g., "true"/"false")
+                with torch.no_grad():
+                    outputs = self.model.generate(**inputs, max_new_tokens=1)
+                    prediction = self.tokenizer.decode(outputs[0], skip_special_tokens=True).strip().lower()
 
-            # Map "true"/"false" to numeric scores
-            if prediction == "true":
-                relevance_score = 1.0
-            elif prediction == "false":
-                relevance_score = 0.0
-            else:
-                relevance_score = 0.5  # Default to a neutral score for unexpected outputs
+                # Map "true"/"false" to numeric scores
+                if prediction == "true":
+                    relevance_score = 1.0
+                elif prediction == "false":
+                    relevance_score = 0.0
+                else:
+                    relevance_score = 0.5  # Default to a neutral score for unexpected outputs
 
-            # Append result with relevance score
-            reranked_results.append({**candidate, "relevance_score": relevance_score})
+                # Append result with relevance score
+                reranked_results.append({**candidate, "relevance_score": relevance_score})
+
+            except Exception as e:
+                self.logger.error(f"Error processing candidate: {e}")
+                reranked_results.append({**candidate, "relevance_score": 0.5})  # Default to neutral score on error
 
         # Sort candidates by relevance score
         reranked_results = sorted(reranked_results, key=lambda x: x["relevance_score"], reverse=True)
