@@ -70,21 +70,34 @@ This project implements a **Retrieval-Augmented Generation (RAG)** pipeline to a
 
 ## System Architecture
 
+The following diagram and description illustrate the complete flow of data and processing in this RAG system:
+
 ```mermaid
 graph TD
-    A[Raw PDFs in raw_documents/] --> B[Chunking (chunking.py)]
+    A[Raw PDFs in raw_documents/] --> B[Chunking & Extraction (chunking.py)]
     B --> C[Text Chunks in processed_chunks/]
     C --> D[Embedding Generation (embeddings.py)]
     D --> E[embeddings.json]
     E --> F[Milvus Vector DB (vector_db.py)]
-    G[User Query] --> H[Query Embedding]
+    F -.->|Vector Search| J
+    G[User Query] --> H[Query Embedding (embeddings.py)]
     H --> I[RAGPipeline (pipeline.py)]
-    F --> I
-    I --> J[Hybrid Retrieval (BM25 + Vector)]
-    J --> K[Reranking (monoT5)]
-    K --> L[Summarization (Gemini API)]
+    I --> J[Hybrid Retrieval (BM25 + Vector) (retrieval.py)]
+    J --> K[Reranking (monoT5) (reranking.py)]
+    K --> L[Summarization (Gemini API) (summarization.py)]
     L --> M[Final Answer]
 ```
+
+- **A → B:** PDFs are split into text chunks, preserving context and structure.
+- **B → C:** Chunks are saved as individual text files for efficient downstream processing.
+- **C → D → E:** Each chunk is embedded into a vector and all embeddings are stored in a JSON file.
+- **E → F:** Embeddings are indexed in Milvus for fast semantic search.
+- **G → H:** User queries are embedded using the same model as the document chunks.
+- **H → I:** The pipeline orchestrates the retrieval, reranking, and summarization steps.
+- **F -.-> J:** Milvus is queried for vector similarity; BM25 is also used for keyword search.
+- **J → K:** Retrieved candidates are reranked for relevance using a transformer model.
+- **K → L:** Top results are summarized by the Gemini LLM for a concise, actionable answer.
+- **L → M:** The user receives the final answer.
 
 ---
 
