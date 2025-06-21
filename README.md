@@ -70,34 +70,18 @@ This project implements a **Retrieval-Augmented Generation (RAG)** pipeline to a
 
 ## System Architecture
 
-The following diagram and description illustrate the complete flow of data and processing in this RAG system:
+The system processes data in the following straightforward sequence:
 
-```mermaid
-graph TD
-    A[Raw PDFs in raw_documents/] --> B[Chunking & Extraction (chunking.py)]
-    B --> C[Text Chunks in processed_chunks/]
-    C --> D[Embedding Generation (embeddings.py)]
-    D --> E[embeddings.json]
-    E --> F[Milvus Vector DB (vector_db.py)]
-    F -.->|Vector Search| J
-    G[User Query] --> H[Query Embedding (embeddings.py)]
-    H --> I[RAGPipeline (pipeline.py)]
-    I --> J[Hybrid Retrieval (BM25 + Vector) (retrieval.py)]
-    J --> K[Reranking (monoT5) (reranking.py)]
-    K --> L[Summarization (Gemini API) (summarization.py)]
-    L --> M[Final Answer]
-```
+1. **Raw PDFs** are uploaded to `raw_documents/`.
+2. **Chunking**: PDFs are split into text chunks and saved in `processed_chunks/`.
+3. **Embedding**: Each chunk is converted to a vector embedding and stored in `embeddings/embeddings.json`.
+4. **Indexing**: Embeddings are loaded into Milvus for fast search.
+5. **Query**: User submits a question.
+6. **Retrieval**: The system finds relevant chunks using both keyword and vector search.
+7. **Reranking**: The best chunks are sorted by relevance.
+8. **Summarization**: The top chunks are summarized into a final answer.
 
-- **A → B:** PDFs are split into text chunks, preserving context and structure.
-- **B → C:** Chunks are saved as individual text files for efficient downstream processing.
-- **C → D → E:** Each chunk is embedded into a vector and all embeddings are stored in a JSON file.
-- **E → F:** Embeddings are indexed in Milvus for fast semantic search.
-- **G → H:** User queries are embedded using the same model as the document chunks.
-- **H → I:** The pipeline orchestrates the retrieval, reranking, and summarization steps.
-- **F -.-> J:** Milvus is queried for vector similarity; BM25 is also used for keyword search.
-- **J → K:** Retrieved candidates are reranked for relevance using a transformer model.
-- **K → L:** Top results are summarized by the Gemini LLM for a concise, actionable answer.
-- **L → M:** The user receives the final answer.
+This linear flow ensures that every user query is answered using the most relevant and up-to-date information from your document collection.
 
 ---
 
