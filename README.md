@@ -1,111 +1,241 @@
-# Retrieval-Augmented Generation (RAG) Application for BPO Agents
+# Retrieval-Augmented Generation (RAG) System for BPO Agents
 
 ## Overview
 
-This project is a Retrieval-Augmented Generation (RAG) application designed to assist BPO agents by retrieving, reranking, and summarizing relevant information from a large document collection. The application uses a combination of traditional information retrieval techniques and modern machine learning models to provide concise and accurate summaries in response to user queries.
+This project implements a **Retrieval-Augmented Generation (RAG)** pipeline to assist BPO agents in answering complex queries by searching, reranking, and summarizing information from large collections of documents (such as insurance policies, claim forms, and guidelines). The system combines traditional information retrieval, state-of-the-art machine learning models, and LLM-based summarization to deliver concise, actionable answers.
 
-## Key Components
+---
 
-1. **User Query Input**:
-    - The user submits a query via a FastAPI endpoint.
-    - The query is received by the `query_rag` function in `src/api.py`.
+## End-to-End Workflow
 
-2. **Query Embedding**:
-    - A placeholder query embedding is generated (this should be replaced with actual embedding logic).
+### 1. **Raw Document Upload**
 
-3. **RAG Pipeline Execution**:
-    - The `RAGPipeline` class in `src/pipeline.py` orchestrates the retrieval, reranking, and summarization processes.
-    - The `run` method of the `RAGPipeline` class is called with the user query, query embedding, and the number of top results to retrieve (`top_k`).
+- **Location:** Place your source PDF files in the `./raw_documents/` directory.
+- **Purpose:** These are the documents from which the system will extract knowledge.
 
-4. **Retrieval**:
-    - The `HybridRetriever` class in `src/retrieval.py` retrieves relevant document chunks using both BM25 (a traditional information retrieval algorithm) and vector-based search.
-    - The retrieved results are combined and prepared for reranking.
+### 2. **Document Chunking (`src/chunking.py`)**
 
-5. **Reranking**:
-    - The `Reranker` class in `src/reranking.py` reranks the retrieved document chunks based on their relevance to the query using a monoT5 model.
-    - The reranked results are sorted by relevance score.
+- **Process:**
+  - Each PDF is read page by page.
+  - Text is extracted from each page (pages with no text are skipped).
+  - The text is split into overlapping chunks using LangChain’s `RecursiveCharacterTextSplitter` (default: 512 characters per chunk, 128 overlap).
+  - Each chunk is saved as a `.txt` file in `./processed_chunks/`, named with the PDF, page, and chunk number.
+- **Why:** Chunking enables efficient retrieval and ensures that answers are based on manageable, contextually relevant pieces of information.
 
-6. **Summarization**:
-    - The `GeminiSummarizer` class in `src/summarization.py` summarizes the top reranked document chunks using the Gemini API.
-    - The summarization prompt includes the original user query and a structured prompt to guide the summarization process.
+### 3. **Embedding Generation (`src/embeddings.py`)**
 
-7. **Response Generation**:
-    - The final summarized response is returned to the user via the FastAPI endpoint.
+- **Process:**
+  - Each chunk file in `./processed_chunks/` is loaded.
+  - The text is passed through a Hugging Face SentenceTransformer model (`all-MiniLM-L6-v2`) to generate a 384-dimensional vector embedding.
+  - Each embedding is stored with its chunk filename in a list.
+  - All embeddings are saved as a JSON file in `./embeddings/embeddings.json`.
+- **Why:** Embeddings allow for semantic search, enabling the system to find text that is similar in meaning to the user’s query, not just matching keywords.
 
-## Innovative Ideas
+### 4. **Vector Database Indexing (`src/vector_db.py` or `src/create_collection.py`)**
 
-- **Hybrid Retrieval**: Combining BM25 and vector-based search to leverage the strengths of both traditional and modern retrieval methods.
-- **Reranking with monoT5**: Using a state-of-the-art transformer model to rerank retrieved document chunks based on their relevance to the query.
-- **Summarization with Gemini API**: Utilizing an external API to generate high-quality summaries, ensuring that the final output is concise and informative.
-- **Structured Prompts**: Providing detailed and structured prompts to guide the summarization process, ensuring that the summaries are tailored to the needs of BPO agents.
+- **Process:**
+  - Connects to a Milvus Cloud instance using credentials from `.env`.
+  - Creates a collection (table) for storing embeddings if it doesn’t exist.
+  - Inserts all chunk embeddings from `embeddings.json` into the Milvus collection.
+  - Creates an index for fast similarity search.
+- **Why:** Milvus enables scalable, low-latency vector similarity search across all document chunks.
 
-## Tech Stack
+### 5. **Querying the System**
 
-- **Python**: The primary programming language used for the application.
-- **FastAPI**: A modern web framework for building APIs with Python.
-- **Pydantic**: Used for data validation and settings management.
-- **Transformers**: A library by Hugging Face for working with transformer models like monoT5.
-- **Milvus**: A vector database used for storing and querying embeddings.
-- **Google Gemini API**: An external API used for generating summaries.
-- **dotenv**: A library for loading environment variables from a `.env` file.
-- **Logging**: Used for logging important events and errors.
+- **User Input:** The user submits a query (e.g., via API or CLI).
+- **Query Embedding:** The query is embedded using the same SentenceTransformer model as the document chunks.
+- **Pipeline Execution:** The `RAGPipeline` (`src/pipeline.py`) orchestrates the following steps:
 
-## Installation
+#### a. **Hybrid Retrieval (`src/retrieval.py`)**
 
-1. Clone the repository:
+- **BM25 Search:** Uses TfidfVectorizer to find chunks with high keyword overlap with the query.
+- **Vector Search:** Uses Milvus to find chunks whose embeddings are most similar to the query embedding.
+- **Combining Results:** Both sets of results are returned for further processing, leveraging the strengths of both keyword and semantic search.
+
+#### b. **Reranking (`src/reranking.py`)**
+
+- **Process:** The top candidate chunks are passed to the `Reranker`, which uses a monoT5 transformer model to score each chunk for relevance to the query.
+- **Result:** Chunks are sorted by their relevance score, ensuring the most relevant information is prioritized.
+
+#### c. **Summarization (`src/summarization.py`)**
+
+- **Process:** The most relevant chunks are passed to the `GeminiSummarizer`.
+  - Chunks are concatenated into a single context.
+  - A structured prompt is created, instructing Gemini to focus on actionable, customer-facing details.
+  - The Gemini API is called with this prompt and context.
+  - The API returns a concise, helpful summary.
+- **Result:** The summary is returned to the user.
+
+---
+
+## System Architecture
+
+```mermaid
+graph TD
+    A[Raw PDFs in raw_documents/] --> B[Chunking (chunking.py)]
+    B --> C[Text Chunks in processed_chunks/]
+    C --> D[Embedding Generation (embeddings.py)]
+    D --> E[embeddings.json]
+    E --> F[Milvus Vector DB (vector_db.py)]
+    G[User Query] --> H[Query Embedding]
+    H --> I[RAGPipeline (pipeline.py)]
+    F --> I
+    I --> J[Hybrid Retrieval (BM25 + Vector)]
+    J --> K[Reranking (monoT5)]
+    K --> L[Summarization (Gemini API)]
+    L --> M[Final Answer]
+```
+
+---
+
+## Key Components and Their Roles
+
+### - **ChunkProcessor (`src/chunking.py`):**
+  - Splits PDFs into overlapping, context-preserving text chunks.
+  - Handles extraction and storage of chunked text.
+
+### - **EmbeddingGenerator (`src/embeddings.py`):**
+  - Uses Hugging Face SentenceTransformer to convert text chunks into dense vector embeddings.
+  - Stores embeddings for later retrieval.
+
+### - **MilvusDB (`src/vector_db.py`):**
+  - Manages connection to Milvus vector database.
+  - Handles collection creation, indexing, and insertion of embeddings.
+  - Supports fast vector similarity search.
+
+### - **HybridRetriever (`src/retrieval.py`):**
+  - Performs both BM25 (keyword-based) and vector (semantic) search.
+  - Combines results for robust retrieval.
+
+### - **Reranker (`src/reranking.py`):**
+  - Uses monoT5 transformer model to rerank candidate chunks by relevance to the query.
+  - Ensures the most contextually appropriate information is surfaced.
+
+### - **GeminiSummarizer (`src/summarization.py`):**
+  - Calls the Gemini API with a structured prompt and the most relevant chunks.
+  - Produces a concise, actionable summary tailored for BPO agents and customers.
+
+### - **RAGPipeline (`src/pipeline.py`):**
+  - Orchestrates the entire process: retrieval, reranking, and summarization.
+  - Provides a single entry point for answering user queries.
+
+---
+
+## Example End-to-End Usage
+
+1. **Upload PDFs:** Place files in `./raw_documents/`.
+2. **Chunk Documents:**  
     ```sh
-    git clone https://github.com/yourusername/RAG_WITH_main.git
-    cd RAG_WITH_main
+    python src/chunking.py
     ```
-
-2. Create and activate a virtual environment:
+3. **Generate Embeddings:**  
     ```sh
-    python3 -m venv venv
-    source venv/bin/activate
+    python src/embeddings.py
     ```
-
-3. Install the dependencies:
+4. **Index Embeddings in Milvus:**  
     ```sh
-    pip install -r requirements.txt
+    python src/vector_db.py
     ```
-
-4. Set up environment variables:
-    - Create a [.env](http://_vscodecontentref_/0) file in the root directory and add the necessary environment variables as shown in [.env](http://_vscodecontentref_/1).
-
-## Usage
-
-1. Start the FastAPI server:
+5. **Start the API Server:**  
     ```sh
     uvicorn src.api:app --reload
     ```
-
-2. Send a POST request to the `/query` endpoint with a JSON payload containing the query and [top_k](http://_vscodecontentref_/2) (optional):
+6. **Query the System:**  
+    Send a POST request to `/query` endpoint:
     ```json
     {
         "query": "What documents are required for a health insurance claim?",
         "top_k": 5
     }
     ```
+    **Sample Response:**
+    ```json
+    {
+        "summary": "To file a health insurance claim, you need to provide the following documents: a completed claim form, a copy of your insurance card, medical reports, and receipts for medical expenses. Ensure all documents are accurate and complete to avoid delays in processing."
+    }
+    ```
 
-3. The server will return a JSON response with the summarized answer.
+---
 
-## Example
+## Design Choices and Rationale
 
-Here is an example of how the application works:
+- **Chunking:** Enables fine-grained retrieval and avoids context loss from large documents.
+- **Hybrid Retrieval:** Combines the precision of keyword search (BM25) with the flexibility of semantic search (vector embeddings).
+- **Reranking:** monoT5 leverages deep language understanding to prioritize the most relevant chunks.
+- **Summarization:** Gemini API produces user-friendly, actionable summaries, guided by structured prompts.
+- **Extensibility:** New documents can be added by repeating the chunking, embedding, and indexing steps.
 
-1. **User Query**:
-    - The user submits a query: "What documents are required for a health insurance claim?"
+---
 
-2. **Pipeline Execution**:
-    - The `RAGPipeline` retrieves relevant document chunks, reranks them, and summarizes the top results.
+## Tech Stack
 
-3. **Final Summary**:
-    - The application returns a summary: "To file a health insurance claim, you need to provide the following documents: a completed claim form, a copy of your insurance card, medical reports, and receipts for medical expenses. Ensure all documents are accurate and complete to avoid delays in processing."
+- **Python**: Core language for all modules.
+- **FastAPI**: High-performance API framework.
+- **Pydantic**: Data validation and settings management.
+- **Transformers (Hugging Face)**: For embedding and reranking models.
+- **Milvus**: Scalable vector database for fast similarity search.
+- **Google Gemini API**: For high-quality LLM-based summarization.
+- **dotenv**: Secure management of environment variables.
+- **LangChain**: Advanced text chunking.
+- **PyPDF2**: PDF text extraction.
+- **Logging**: For robust error tracking and debugging.
+
+---
+
+## Environment Setup
+
+1. **Clone the repository:**
+    ```sh
+    git clone https://github.com/yourusername/RAG_WITH_main.git
+    cd RAG_WITH_main
+    ```
+
+2. **Create and activate a virtual environment:**
+    ```sh
+    python3 -m venv venv
+    source venv/bin/activate
+    ```
+
+3. **Install dependencies:**
+    ```sh
+    pip install -r requirements.txt
+    ```
+
+4. **Set up environment variables:**
+    - Create a `.env` file in the root directory with:
+        ```
+        GEMINI_API_KEY=your_gemini_api_key
+        MILVUS_PUBLIC_ENDPOINT=your_milvus_endpoint
+        MILVUS_API_KEY=your_milvus_api_key
+        ```
+
+---
+
+## Advanced Topics
+
+- **Adding New Documents:**  
+  Place new PDFs in `raw_documents/` and rerun the chunking, embedding, and indexing scripts.
+- **Model Customization:**  
+  Swap out embedding or reranking models in `embeddings.py` or `reranking.py` for domain-specific needs.
+- **Prompt Engineering:**  
+  Modify the prompt in `summarization.py` to tailor summaries for different use cases.
+- **Scaling:**  
+  Milvus and FastAPI can be horizontally scaled for large document collections and high query volumes.
+
+---
 
 ## Contributing
 
-Contributions are welcome! Please open an issue or submit a pull request for any improvements or bug fixes.
+Contributions are welcome! Please open an issue or submit a pull request for improvements, bug fixes, or new features.
+
+---
 
 ## License
 
 This project is licensed under the MIT License. See the LICENSE file for details.
+
+---
+
+## Contact
+
+For questions or support, please open an issue on GitHub.
