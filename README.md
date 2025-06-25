@@ -208,6 +208,79 @@ This linear flow ensures that every user query is answered using the most releva
 
 ---
 
+## Running the Application
+
+To run the RAG system end-to-end, follow these steps:
+
+1. **Clone the repository:**
+    ```sh
+    git clone https://github.com/yourusername/RAG_WITH_main.git
+    cd RAG_WITH_main
+    ```
+
+2. **Create and activate a virtual environment:**
+    ```sh
+    python3 -m venv venv
+    source venv/bin/activate
+    ```
+
+3. **Install dependencies:**
+    ```sh
+    pip install -r requirements.txt
+    ```
+
+4. **Set up environment variables:**
+    - Create a `.env` file in the root directory with your API keys and endpoints.
+    - If you want to use a separate environment file for the `src` directory (e.g., `src/.env`), make sure to remove `src/.env` from your `.gitignore` file if you want it to be tracked by git and visible in your repository. **(See below for details.)**
+
+5. **Prepare your documents:**
+    - Place your PDF files in the `raw_documents/` directory.
+
+6. **Chunk the documents:**
+    ```sh
+    python src/chunking.py
+    ```
+
+7. **Generate embeddings:**
+    ```sh
+    python src/embeddings.py
+    ```
+
+8. **Index embeddings in Milvus:**
+    ```sh
+    python src/vector_db.py
+    ```
+
+9. **Start the API server:**
+    ```sh
+    uvicorn src.api:app --reload
+    ```
+
+10. **Query the system:**
+    - Send a POST request to the `/query` endpoint with your question and desired number of results.
+
+---
+
+## Making `src/.env` Visible in Your Repo
+
+By default, `.gitignore` hides `src/.env` to protect sensitive data. If you want `src/.env` to be tracked and visible in your repository (not recommended for secrets in public repos):
+
+1. **Edit `.gitignore`:**
+    - Remove or comment out the line:
+      ```
+      src/.env
+      ```
+2. **Add and commit the file:**
+    ```sh
+    git add src/.env
+    git commit -m "Track src/.env in the repository"
+    git push
+    ```
+
+**Warning:** Only do this if you are sure the file does not contain sensitive information, or your repository is private.
+
+---
+
 ## Advanced Topics
 
 - **Adding New Documents:**  
